@@ -60,6 +60,10 @@ class OnvifManager {
     }
   }
 
+  disconnect(address) {
+    this.cameras = this.cameras.filter(el => el !== address);
+  }
+
 }
 
 module.exports = new OnvifManager();

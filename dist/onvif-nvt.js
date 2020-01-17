@@ -62,7 +62,9 @@ class OnvifManager {
   }
 
   disconnect(address) {
-    this.cameras = this.cameras.filter(el => el !== address);
+    if (this.cameras instanceof Array) {
+      this.cameras = this.cameras.filter(el => el !== address);
+    }
   }
 
 }

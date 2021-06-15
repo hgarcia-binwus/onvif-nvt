@@ -1,5 +1,5 @@
 {
-  "name": "onvif-nvt",
+  "name": "@binwus-org/onvif-nvt",
   "version": "0.2.23",
   "description": "Wrapper for ONVIF spec to control NVT (Network Video Transitter) devices.",
   "main": "./dist/onvif-nvt.js",
@@ -21,11 +21,11 @@
     "ptz",
     "snapshot"
   ],
-  "homepage": "https://github.com/hawkeye64/onvif-nvt#readme",
+  "homepage": "https://github.com/hgarcia-binwus/onvif-nvt#readme",
   "documentation": "https://hawkeye64.github.io/onvif-nvt",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hawkeye64/onvif-nvt.git"
+    "url": "git+https://github.com/hgarcia-binwus/onvif-nvt.git"
   },
   "author": "Jeff Galbraith <jeff.galbraith@xendra.com>",
   "license": "MIT",

@@ -28,7 +28,8 @@ class OnvifManager {
         return;
       }
 
-      const c = this.cameras[address];
+      const cacheKey = `${address}:${port}`;
+      const c = this.cameras[cacheKey];
 
       if (c) {
         resolve(c);
@@ -41,7 +42,7 @@ class OnvifManager {
 
       const camera = new Camera();
       return camera.connect(address, port, username, password, servicePath).then(results => {
-        this.cameras[address] = camera;
+        this.cameras[cacheKey] = camera;
         resolve(camera);
       }).catch(error => {
         console.error(error);
@@ -60,12 +61,18 @@ class OnvifManager {
     }
   }
 
-  disconnect(address) {
+  disconnect (address, port) {
+    let cacheKey;
     if (this.cameras instanceof Array) {
-      this.cameras = this.cameras.filter(el => el !== address);
+      if (port === undefined || port === null) {
+        cacheKey = `${address}:`;
+        this.cameras = this.cameras.filter((el) => !el.startsWith(cacheKey));
+      } else {
+        cacheKey = `${address}:${port}`;
+        this.cameras = this.cameras.filter((el) => el !== cacheKey);
+      }
     }
   }
-
 }
 
 module.exports = new OnvifManager();

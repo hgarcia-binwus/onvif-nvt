@@ -29,6 +29,48 @@
             <pre class="prettyprint source linenums"><code>const Util = require('./utils/util')
 const URL = require('url-parse')
 
+const MODULE_MAP = {
+  access: './modules/access',
+  accessrules: './modules/accessrules',
+  action: './modules/action',
+  analytics: './modules/analytics',
+  core: './modules/core',
+  credential: './modules/credential',
+  deviceio: './modules/deviceio',
+  display: './modules/display',
+  door: './modules/door',
+  events: './modules/events',
+  imaging: './modules/imaging',
+  media: './modules/media',
+  media2: './modules/media2',
+  ptz: './modules/ptz',
+  receiver: './modules/receiver',
+  recording: './modules/recording',
+  replay: './modules/replay',
+  schedule: './modules/schedule',
+  search: './modules/search',
+  security: './modules/security',
+  snapshot: './utils/snapshot',
+  thermal: './modules/thermal',
+  videoanalytics: './modules/videoanalytics'
+}
+
+const MODULE_MAP_AFTER = {
+  core: function () {
+    this.core.init(this.serviceAddress, this.username, this.password)
+  },
+  media: function () {
+    this.media.init(this.timeDiff, this.serviceAddress, this.username, this.password)
+  },
+  snapshot: function () {
+    const defaultProfile = this.getDefaultProfile()
+    if (defaultProfile) {
+      const snapshotUri = defaultProfile.SnapshotUri.Uri
+      this.snapshot.init(snapshotUri, this.username, this.password)
+    }
+  }
+}
+
 /**
  * Wrapper class for all onvif modules to manage an Onvif device (camera).
  */
@@ -102,155 +144,18 @@ class Camera {
    * @param {string} name The name of the module.
    */
   add (name) {
-    switch (name) {
-      case 'access':
-        if (!this.access) {
-          const Access = require('./modules/access')
-          this.access = new Access()
-        }
-        break
-      case 'accessrules':
-        if (!this.accessrules) {
-          const AccessRules = require('./modules/accessrules')
-          this.accessrules = new AccessRules()
-        }
-        break
-      case 'action':
-        if (!this.action) {
-          const Action = require('./modules/action')
-          this.action = new Action()
-        }
-        break
-      case 'analytics':
-        if (!this.analytics) {
-          const Analytics = require('./modules/analytics')
-          this.analytics = new Analytics()
-        }
-        break
-      case 'core':
-        if (!this.core) {
-          const Core = require('./modules/core')
-          this.core = new Core()
-          this.core.init(this.serviceAddress, this.username, this.password)
-        }
-        break
-      case 'credential':
-        if (!this.credential) {
-          const Credential = require('./modules/credential')
-          this.credential = new Credential()
-        }
-        break
-      case 'deviceio':
-        if (!this.deviceio) {
-          const DeviceIO = require('./modules/deviceio')
-          this.deviceio = new DeviceIO()
-        }
-        break
-      case 'display':
-        if (!this.display) {
-          const Display = require('./modules/display')
-          this.display = new Display()
-        }
-        break
-      case 'door':
-        if (!this.door) {
-          const Door = require('./modules/door')
-          this.door = new Door()
-        }
-        break
-      case 'events':
-        if (!this.events) {
-          const Events = require('./modules/events')
-          this.events = new Events()
-        }
-        break
-      case 'imaging':
-        if (!this.imaging) {
-          const Imaging = require('./modules/imaging')
-          this.imaging = new Imaging()
-        }
-        break
-      case 'media':
-        if (!this.media) {
-          const Media = require('./modules/media')
-          this.media = new Media()
-          this.media.init(this.timeDiff, this.serviceAddress, this.username, this.password)
-        }
-        break
-      case 'media2':
-        if (!this.media2) {
-          const Media2 = require('./modules/media2')
-          this.media2 = new Media2()
-        }
-        break
-      case 'ptz':
-        if (!this.ptz) {
-          const Ptz = require('./modules/ptz')
-          this.ptz = new Ptz()
-        }
-        break
-      case 'receiver':
-        if (!this.receiver) {
-          const Receiver = require('./modules/receiver')
-          this.receiver = new Receiver()
-        }
-        break
-      case 'recording':
-        if (!this.recording) {
-          const Recording = require('./modules/recording')
-          this.recording = new Recording()
-        }
-        break
-      case 'replay':
-        if (!this.replay) {
-          const Replay = require('./modules/replay')
-          this.replay = new Replay()
-        }
-        break
-      case 'schedule':
-        if (!this.schedule) {
-          const Schedule = require('./modules/schedule')
-          this.schedule = new Schedule()
-        }
-        break
-      case 'search':
-        if (!this.search) {
-          const Search = require('./modules/search')
-          this.search = new Search()
-        }
-        break
-      case 'security':
-        if (!this.security) {
-          const Security = require('./modules/security')
-          this.security = new Security()
-        }
-        break
-      case 'snapshot':
-        if (!this.snapshot) {
-          const Snapshot = require('./utils/snapshot')
-          this.snapshot = new Snapshot()
-          const defaultProfile = this.getDefaultProfile()
-          if (defaultProfile) {
-            const snapshotUri = defaultProfile.SnapshotUri.Uri
-            this.snapshot.init(snapshotUri, this.username, this.password)
-          }
-        }
-        break
-      case 'thermal':
-        if (!this.thermal) {
-          const Thermal = require('./modules/thermal')
-          this.thermal = new Thermal()
-        }
-        break
-      case 'videoanalytics':
-        if (!this.videoanalytics) {
-          const VideoAnalytics = require('./modules/videoanalytics')
-          this.videoanalytics = new VideoAnalytics()
-        }
-        break
-      default:
-        throw new Error(`Module '${name}' does not exist. Cannot add to Camera.`)
+    const mod = MODULE_MAP[name]
+    if (!MODULE_MAP[name]) {
+      throw new Error(`Module '${name}' does not exist. Cannot add to Camera.`)
     }
+    if (this[name]) {
+      return
+    }
+    const Inst = require(mod)
+    const after = MODULE_MAP_AFTER[name] || (() => {})
+
+    this[name] = new Inst()
+    after.call(this)
   }
 
   /**
@@ -457,13 +362,13 @@ class Camera {
   // do be dealt with
   checkForProxy (service) {
     const xaddrPath = new URL(service.XAddr)
-    if (xaddrPath.hostname === this.serviceAddress.hostname) {
+    if (xaddrPath.href === this.serviceAddress.href) {
       // no proxy
       return
     }
 
     // build new path
-    service.XAddr = this.rootPath + xaddrPath.pathname
+    service.XAddr = this.rootPath + xaddrPath.pathname + xaddrPath.query
   }
 
   coreGetCapabilities () {
@@ -509,7 +414,7 @@ class Camera {
                   this.events.init(this.timeDiff, serviceAddress, this.username, this.password)
                 }
               }
-              if (this.events) {
+              if (this.events &amp;&amp; this.analytics) {
                 if ('WSPullPointSupport' in events &amp;&amp; events.WSPullPointSupport === 'true') {
                   this.analytics.wsPullPointSupport = true
                 }
@@ -585,7 +490,7 @@ class Camera {
     return new Promise((resolve, reject) => {
       this.core.getScopes()
         .then(results => {
-          const scopes = results.data.GetScopesResponse.Scopes
+          const scopes = typeof results.data.GetScopesResponse.Scopes === 'undefined' || !Array.isArray(results.data.GetScopesResponse.Scopes) ? [] : results.data.GetScopesResponse.Scopes
           this.deviceInformation.Ptz = false
           scopes.forEach((scope) => {
             const s = scope.ScopeItem
@@ -669,6 +574,11 @@ class Camera {
 
   parseProfiles (profiles) {
     const profileList = []
+
+    // When a single profile is given 'profiles' is the single profile
+    if (!Array.isArray(profiles)) {
+      profiles = [profiles]
+    }
 
     profiles.forEach((profile) => {
       profileList.push(profile)
@@ -774,13 +684,13 @@ module.exports = Camera
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Access.html">Access</a></li><li><a href="AccessRules.html">AccessRules</a></li><li><a href="Action.html">Action</a></li><li><a href="Analytics.html">Analytics</a></li><li><a href="Camera.html">Camera</a></li><li><a href="Core.html">Core</a></li><li><a href="Credential.html">Credential</a></li><li><a href="DeviceIO.html">DeviceIO</a></li><li><a href="Discovery.html">Discovery</a></li><li><a href="Display.html">Display</a></li><li><a href="Door.html">Door</a></li><li><a href="Events.html">Events</a></li><li><a href="Imaging.html">Imaging</a></li><li><a href="Media.html">Media</a></li><li><a href="Media2.html">Media2</a></li><li><a href="OnvifManager.html">OnvifManager</a></li><li><a href="Ptz.html">Ptz</a></li><li><a href="Receiver.html">Receiver</a></li><li><a href="Recording.html">Recording</a></li><li><a href="Replay.html">Replay</a></li><li><a href="Schedule.html">Schedule</a></li><li><a href="Search.html">Search</a></li><li><a href="Security.html">Security</a></li><li><a href="Snapshot.html">Snapshot</a></li><li><a href="Soap.html">Soap</a></li><li><a href="Thermal.html">Thermal</a></li><li><a href="VideoAnalytics.html">VideoAnalytics</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Nov 16 2019 14:01:48 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jun 11 2021 11:44:06 GMT-0600 (Mountain Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

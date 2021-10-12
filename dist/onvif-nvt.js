@@ -61,18 +61,20 @@ class OnvifManager {
     }
   }
 
-  disconnect (address, port) {
+  disconnect(address, port) {
     let cacheKey;
+
     if (this.cameras instanceof Array) {
       if (port === undefined || port === null) {
         cacheKey = `${address}:`;
-        this.cameras = this.cameras.filter((el) => !el.startsWith(cacheKey));
+        this.cameras = this.cameras.filter(el => !el.startsWith(cacheKey));
       } else {
         cacheKey = `${address}:${port}`;
-        this.cameras = this.cameras.filter((el) => el !== cacheKey);
+        this.cameras = this.cameras.filter(el => el !== cacheKey);
       }
     }
   }
+
 }
 
 module.exports = new OnvifManager();

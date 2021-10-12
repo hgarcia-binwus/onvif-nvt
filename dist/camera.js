@@ -82,8 +82,6 @@ class Camera {
   }
 
   add(name) {
-    const mod = MODULE_MAP[name];
-
     if (!MODULE_MAP[name]) {
       throw new Error(`Module '${name}' does not exist. Cannot add to Camera.`);
     }
@@ -92,7 +90,101 @@ class Camera {
       return;
     }
 
-    const Inst = require(mod);
+    let Inst;
+
+    switch (name) {
+      case 'access':
+        Inst = require('./modules/access');
+        break;
+
+      case 'accessrules':
+        Inst = require('./modules/accessrules');
+        break;
+
+      case 'action':
+        Inst = require('./modules/action');
+        break;
+
+      case 'analytics':
+        Inst = require('./modules/analytics');
+        break;
+
+      case 'core':
+        Inst = require('./modules/core');
+        break;
+
+      case 'credential':
+        Inst = require('./modules/credential');
+        break;
+
+      case 'deviceio':
+        Inst = require('./modules/deviceio');
+        break;
+
+      case 'display':
+        Inst = require('./modules/display');
+        break;
+
+      case 'door':
+        Inst = require('./modules/door');
+        break;
+
+      case 'events':
+        Inst = require('./modules/events');
+        break;
+
+      case 'imaging':
+        Inst = require('./modules/imaging');
+        break;
+
+      case 'media':
+        Inst = require('./modules/media');
+        break;
+
+      case 'media2':
+        Inst = require('./modules/media2');
+        break;
+
+      case 'ptz':
+        Inst = require('./modules/ptz');
+        break;
+
+      case 'receiver':
+        Inst = require('./modules/receiver');
+        break;
+
+      case 'recording':
+        Inst = require('./modules/recording');
+        break;
+
+      case 'replay':
+        Inst = require('./modules/replay');
+        break;
+
+      case 'schedule':
+        Inst = require('./modules/schedule');
+        break;
+
+      case 'search':
+        Inst = require('./modules/search');
+        break;
+
+      case 'security':
+        Inst = require('./modules/security');
+        break;
+
+      case 'snapshot':
+        Inst = require('./utils/snapshot');
+        break;
+
+      case 'thermal':
+        Inst = require('./modules/thermal');
+        break;
+
+      case 'videoanalytics':
+        Inst = require('./modules/videoanalytics');
+        break;
+    }
 
     const after = MODULE_MAP_AFTER[name] || (() => {});
 
